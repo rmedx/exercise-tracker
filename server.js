@@ -18,20 +18,18 @@ app.use(bodyParser.urlencoded({extended: false}));
 // connect mongoose
 mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
-// schemata for user and exercise
+// schema for user
 const userSchema = new Schema({
-  username: {type: String, unique: true, required: true}
+  username: {type: String, unique: true, required: true},
+  exercises: [{
+    description: {type: String, required: true},
+    duration: { type: Number, required: true },
+    date: {type: String, required: true},
+    _id: false
+  }]
 });
-const exerciseSchema = new Schema({
-  userId: { type: String, required: true },
-  description: {type: String, required: true},
-  duration: { type: Number, required: true },
-  date: {type: String, required: true}
-});
-// models for user and exercise
+// model for user
 const User = mongoose.model('User', userSchema);
-const Exercise = mongoose.model('Exercise', exerciseSchema);
-// const Exercise = mongoose.model('Exercise', exerciseSchema);
 
 // post user
 app.post('/api/users', (req, res) => {
@@ -64,8 +62,8 @@ app.get('/api/users', (req, res) => {
 
 // post exercises
 app.post('/api/users/:_id/exercises', (req, res) => {
-  console.log(req.body);
-  console.log(typeof(req.body[':_id']));
+  // console.log(req.body);
+  // console.log(typeof(req.body[':_id']));
   let outUserId = req.body[':_id'];
   let outDescription = req.body.description;
   let outDuration = req.body.duration;
@@ -75,23 +73,34 @@ app.post('/api/users/:_id/exercises', (req, res) => {
   } else {
     outDate = new Date(outDate).toString().substring(0, 15);
   }
-  let newExercise = new Exercise({
-    userId: outUserId,
+  let newExercise = {
     description: outDescription,
     duration: outDuration,
     date: outDate
-  });
-  console.log(newExercise);
-  newExercise.save((err, data) => {
+  };
+  // console.log(newExercise);
+  User.findById(outUserId, (err, individual) => {
     if (err) {
-      return console.log("error saving exercise");
+      return console.log("error finding user by id");
     } else {
-      res.json({
-        userId: outUserId,
-        description: outDescription,
-        duration: outDuration,
-        date: outDate
-      });
+      // console.log(individual);
+      // console.log(individual.username);
+      // console.log(individual._id);
+      console.log(individual.exercises);
+      individual.exercises.push(newExercise);
+      individual.save((err, savedIndividual) => {
+        if (err) {
+          return console.log("error saving user after exercises update");
+        } else {
+          res.json({
+            _id: outUserId,
+            username: individual.username,
+            description: outDescription,
+            duration: outDuration,
+            date: outDate
+          });
+        }
+      })
     }
   });
 });
