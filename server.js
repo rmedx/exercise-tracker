@@ -57,10 +57,10 @@ app.get('/api/users', (req, res) => {
 
 // post an exercise to logs
 app.post('/api/users/:_id/exercises', (req, res) => {
-  console.log("req.body=> ")
-  console.log(req.body);
-  console.log("id");
-  console.log(req.params._id);
+  // console.log("req.body=> ")
+  // console.log(req.body);
+  // console.log("id");
+  // console.log(req.params._id);
   // make sure required fields are filled
   let outUserId = req.params._id;
   let outDescription = req.body.description;
@@ -82,8 +82,8 @@ app.post('/api/users/:_id/exercises', (req, res) => {
     duration: outDuration,
     description: outDescription
   };
-  console.log("newExercise: ");
-  console.log(newExercise);
+  // console.log("newExercise: ");
+  // console.log(newExercise);
   User.findById(outUserId, (err, individual) => {
     if (err) {
       return console.log("error finding user by id");
@@ -109,41 +109,41 @@ app.post('/api/users/:_id/exercises', (req, res) => {
 });
 
 // get log of exercises from user
-// app.get('/api/users/:_id/logs', (req, res) => {
-//   console.log("req.params=> ");
-//   console.log(req.params);
-//   let inputId = req.params._id;
-//   let from;
-//   let to;
-//   if (req.query.from && req.query.to) {
-//     from = new Date(req.query.from);
-//     to = new Date(req.query.to);
-//   }
-//   let limit = req.query.limit;
-//   User.findById(inputId, (err, individual) => {
-//     if (err) {
-//       return console.log("error finding user for logs");
-//     }
-//     let logCopy = JSON.parse(JSON.stringify(individual.log));
-//     if (from && to) {
-//       logCopy = logCopy.filter(d => {
-//         let temp = new Date(d.date);
-//         return (from <= temp && temp <= to);
-//       });
-//     }
-//     let length = logCopy.length;
-//     if (limit && limit < length) {
-//       logCopy = logCopy.slice(0, limit);
-//     }
-//     let countOutput = logCopy.length;
-//     res.json({
-//       _id: individual._id,
-//       username: individual.username,
-//       count: countOutput,
-//       log: logCopy
-//     });
-//   });
-// });
+app.get('/api/users/:_id/logs', (req, res) => {
+  // console.log("req.params=> ");
+  // console.log(req.params);
+  let inputId = req.params._id;
+  let from;
+  let to;
+  if (req.query.from && req.query.to) {
+    from = new Date(req.query.from);
+    to = new Date(req.query.to);
+  }
+  let limit = req.query.limit;
+  User.findById(inputId, (err, individual) => {
+    if (err) {
+      return console.log("error finding user for logs");
+    }
+    let logCopy = JSON.parse(JSON.stringify(individual.log));
+    if (from && to) {
+      logCopy = logCopy.filter(d => {
+        let temp = new Date(d.date);
+        return (from <= temp && temp <= to);
+      });
+    }
+    let length = logCopy.length;
+    if (limit && limit < length) {
+      logCopy = logCopy.slice(0, limit);
+    }
+    let countOutput = logCopy.length;
+    res.json({
+      _id: individual._id,
+      username: individual.username,
+      count: countOutput,
+      log: logCopy
+    });
+  });
+});
 
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log('Your app is listening on port ' + listener.address().port)
