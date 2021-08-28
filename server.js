@@ -71,12 +71,12 @@ app.post('/api/users/:_id/exercises', (req, res) => {
     return console.log("error: please complete all required fields");
   }
   // if invalid date return error
-  if (new Date(tempDate).toUTCString() === "Invalid Date") {
-    tempDate = new Date().toUTCString().substring(0, 16);
+  if (new Date(tempDate).toDateString() === "Invalid Date") {
+    tempDate = new Date().toDateString().substring(0, 16);
     console.log("tempDate string: " + tempDate)
   }
   // if empty string then instantiate date with current time
-  let outDate = new Date(tempDate).toUTCString().substring(0, 16);
+  let outDate = new Date(tempDate).toDateString().substring(0, 16);
   let newExercise = {
     date: outDate,
     duration: outDuration,
