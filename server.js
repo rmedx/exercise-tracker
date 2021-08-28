@@ -59,30 +59,31 @@ app.get('/api/users', (req, res) => {
 app.post('/api/users/:_id/exercises', (req, res) => {
   console.log("req.body=> ")
   console.log(req.body);
+  console.log("id");
+  console.log(req.params._id);
   // make sure required fields are filled
-  let outUserId = req.body[':_id'];
+  let outUserId = req.params._id;
   let outDescription = req.body.description;
   let outDuration = Number.parseInt(req.body.duration);
-  if (!outUserId || !outDescription || !outDuration) {
+  let tempDate = req.body.date;
+  // console.log(outUserId, outDescription, outDuration);
+  if (!outDescription || !outDuration) {
     return console.log("error: please complete all required fields");
   }
-  // create date object from query or instantiate date for current time
-  let outDate;
   // if invalid date return error
-  if (!new Date(req.body.date)) {
-    return console.log("error: please enter valid date");
-  // if empty string then instantiate date with current time
-  } else if (req.body.date === "") {
-    outDate = new Date().toString().substring(0, 15);
-  // if valid date convert query date to valid date
-  } else {
-    outDate = new Date(req.body.date).toString().substring(0, 15);
+  if (new Date(tempDate).toUTCString() === "Invalid Date") {
+    tempDate = new Date().toUTCString().substring(0, 16);
+    console.log("tempDate string: " + tempDate)
   }
+  // if empty string then instantiate date with current time
+  let outDate = new Date(tempDate).toUTCString().substring(0, 16);
   let newExercise = {
     date: outDate,
     duration: outDuration,
     description: outDescription
   };
+  console.log("newExercise: ");
+  console.log(newExercise);
   User.findById(outUserId, (err, individual) => {
     if (err) {
       return console.log("error finding user by id");
@@ -97,8 +98,8 @@ app.post('/api/users/:_id/exercises', (req, res) => {
         return console.log("error saving user after log update");
       }
       res.json({
-        _id: outUserId,
-        username: individual.username,
+        _id: savedIndividual._id,
+        username: savedIndividual.username,
         date: outDate,
         duration: outDuration,
         description: outDescription
@@ -108,39 +109,41 @@ app.post('/api/users/:_id/exercises', (req, res) => {
 });
 
 // get log of exercises from user
-app.get('/api/users/:_id/logs', (req, res) => {
-  let inputId = req.params._id;
-  let from;
-  let to;
-  if (req.query.from && req.query.to) {
-    from = new Date(req.query.from);
-    to = new Date(req.query.to);
-  }
-  let limit = req.query.limit;
-  User.findById(inputId, (err, individual) => {
-    if (err) {
-      return console.log("error finding user for logs");
-    }
-    let logCopy = JSON.parse(JSON.stringify(individual.log));
-    if (from && to) {
-      logCopy = logCopy.filter(d => {
-        let temp = new Date(d.date);
-        return (from <= temp && temp <= to);
-      });
-    }
-    let length = logCopy.length;
-    if (limit && limit < length) {
-      logCopy = logCopy.slice(0, limit);
-    }
-    let countOutput = logCopy.length;
-    res.json({
-      _id: individual._id,
-      username: individual.username,
-      count: countOutput,
-      log: logCopy
-    });
-  });
-});
+// app.get('/api/users/:_id/logs', (req, res) => {
+//   console.log("req.params=> ");
+//   console.log(req.params);
+//   let inputId = req.params._id;
+//   let from;
+//   let to;
+//   if (req.query.from && req.query.to) {
+//     from = new Date(req.query.from);
+//     to = new Date(req.query.to);
+//   }
+//   let limit = req.query.limit;
+//   User.findById(inputId, (err, individual) => {
+//     if (err) {
+//       return console.log("error finding user for logs");
+//     }
+//     let logCopy = JSON.parse(JSON.stringify(individual.log));
+//     if (from && to) {
+//       logCopy = logCopy.filter(d => {
+//         let temp = new Date(d.date);
+//         return (from <= temp && temp <= to);
+//       });
+//     }
+//     let length = logCopy.length;
+//     if (limit && limit < length) {
+//       logCopy = logCopy.slice(0, limit);
+//     }
+//     let countOutput = logCopy.length;
+//     res.json({
+//       _id: individual._id,
+//       username: individual.username,
+//       count: countOutput,
+//       log: logCopy
+//     });
+//   });
+// });
 
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log('Your app is listening on port ' + listener.address().port)
